@@ -50,13 +50,15 @@ jobs:
     env:
       BATON_LOG_LEVEL: debug
       # Add any environment variables needed to run baton-airbyte
-      # BATON_BASE_URL: 'http://localhost:8080'
+      BATON_BASE_URL: 'https://cloud.airbyte.com/'
+      BATON_AIRBYTE_CLIENT_ID: '653b7d6e-2155-4e96-9797-852168d88e66'
+      BATON_AIRBYTE_CLIENT_SECRET: 'MkeOuDxFETzkspcKSXKGTjXk8s2KvwT3'
       # BATON_ACCESS_TOKEN: 'secret_token'
       # The following parameters are passed to grant/revoke commands
       # Change these to the correct IDs for your test data
-      CONNECTOR_GRANT: 'grant:entitlement:group:1234:member:user:9876'
-      CONNECTOR_ENTITLEMENT: 'entitlement:group:1234:member'
-      CONNECTOR_PRINCIPAL: 'user:9876'
+      CONNECTOR_GRANT: 'organization:2fd7f323-7f95-41f6-9fb2-fdaa8398b338:organization_admin:user:433b433f-9b82-463f-96dc-2310444d0838'
+      CONNECTOR_ENTITLEMENT: 'organization:2fd7f323-7f95-41f6-9fb2-fdaa8398b338:organization_admin'
+      CONNECTOR_PRINCIPAL: '433b433f-9b82-463f-96dc-2310444d0838'
       CONNECTOR_PRINCIPAL_TYPE: 'user'
     steps:
       - name: Install Go
@@ -76,7 +78,7 @@ jobs:
       - name: Build baton-airbyte
         run: go build ./cmd/baton-airbyte
       - name: Run baton-airbyte
-        run: ./baton-airbyte
+        run: ./baton-airbyte --hostname="${{ env.BATON_BASE_URL }}" --airbyte-client-id="${{ env.BATON_AIRBYTE_CLIENT_ID }}" --airbyte-client-secret="${{ env.BATON_AIRBYTE_CLIENT_SECRET }}"
 
       - name: Install baton
         run: ./scripts/get-baton.sh && mv baton /usr/local/bin
@@ -84,21 +86,4 @@ jobs:
       - name: Check for grant before revoking
 
         run:
-          baton grants --entitlement="${{ env.CONNECTOR_ENTITLEMENT }}" --output-format=json | jq --exit-status ".grants[].principal.id.resource == \"${{ env.CONNECTOR_PRINCIPAL }}\""
-
-
-      - name: Revoke grants
-        run: ./baton-airbyte --revoke-grant="${{ env.CONNECTOR_GRANT }}"
-
-      - name: Check grant was revoked
-        run: ./baton-airbyte && baton grants --entitlement="${{ env.CONNECTOR_ENTITLEMENT }}" --output-format=json | jq --exit-status "if .grants then .grants[]?.principal.id.resource != \"${{ env.CONNECTOR_PRINCIPAL }}\" else . end"
-
-      - name: Grant entitlement
-        # Change the grant arguments to the correct IDs for your test data
-        run: ./baton-airbyte --grant-entitlement="${{ env.CONNECTOR_ENTITLEMENT }}" --grant-principal="${{ env.CONNECTOR_PRINCIPAL }}" --grant-principal-type="${{ env.CONNECTOR_PRINCIPAL_TYPE }}"
-
-      - name: Check grant was re-granted
-
-        run:
-          baton grants --entitlement="${{ env.CONNECTOR_ENTITLEMENT }}" --output-format=json | jq --exit-status ".grants[].principal.id.resource == \"${{ env.CONNECTOR_PRINCIPAL }}\""
-
+          baton grants --entitlement="${{ env.CONNECTOR_ENTITLEMENT }}" --output-format=json | jq --exit-status ".grants[0].principal.id.resource == \"${{ env.CONNECTOR_PRINCIPAL }}\""

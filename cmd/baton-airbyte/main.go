@@ -47,8 +47,8 @@ func getConnector(ctx context.Context, v *viper.Viper) (types.ConnectorServer, e
 	}
 
 	hostname := v.GetString("hostname")
-	clientId := v.GetString("client_id")
-	clientSecret := v.GetString("client_secret")
+	clientId := v.GetString("airbyte-client-id")
+	clientSecret := v.GetString("airbyte-client-secret")
 
 	cb, err := connector.New(ctx, hostname, clientId, clientSecret)
 	if err != nil {
