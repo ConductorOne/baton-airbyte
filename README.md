@@ -1,3 +1,4 @@
+
 ![Baton Logo](./baton-logo.png)
 
 # `baton-airbyte` [![Go Reference](https://pkg.go.dev/badge/github.com/conductorone/baton-airbyte.svg)](https://pkg.go.dev/github.com/conductorone/baton-airbyte) ![main ci](https://github.com/conductorone/baton-airbyte/actions/workflows/main.yaml/badge.svg)
@@ -6,9 +7,76 @@
 
 Check out [Baton](https://github.com/conductorone/baton) to learn more about the project in general.
 
-# Getting Started
+# Baton Airbyte Connector
 
-## Prerequisites
+## Overview
+
+Baton-airbyte is a connector for [Airbyte](https://airbyte.com/) built using the [Baton SDK](https://github.com/conductorone/baton-sdk). Baton is an open-source tool for identity security and access control. This connector syncs identity and resource data from Airbyte into Baton, enabling you to manage access to your Airbyte resources.
+
+## Features & Capabilities
+
+- **Resource Syncing**: Synchronizes users, workspaces, and organizations from Airbyte
+- **Role-Based Access Control**: Maps Airbyte roles and permissions to Baton's access model
+- **OAuth 2.0 Integration**: Uses client credentials flow for secure authentication
+- **Real-Time Data**: Keeps identity data and access relationships up-to-date
+- **Read-Only Operation**: Currently supports read-only operations (no provisioning)
+
+## Authentication & Configuration
+
+The connector uses OAuth 2.0 client credentials flow to authenticate with Airbyte. You'll need to:
+
+1. Set up an OAuth 2.0 client in your Airbyte instance
+2. Configure the environment variables required for authentication
+
+### Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `BATON_AIRBYTE_CLIENT_ID` | OAuth 2.0 client ID | Yes |
+| `BATON_AIRBYTE_CLIENT_SECRET` | OAuth 2.0 client secret | Yes |
+| `BATON_DOMAIN_URL` | The domain URL for your Airbyte instance | Yes |
+
+### Token Refresh Logic
+
+The connector automatically manages token refresh when tokens expire, using the client credentials grant type to obtain new access tokens.
+
+## Resource Types
+
+The connector syncs the following resource types from Airbyte:
+
+### Users
+
+Properties captured for users include:
+- User ID
+- Email
+- Name
+- Status (active/inactive)
+- Authentication type
+- User type
+- Associated organizations and workspaces
+
+### Workspaces
+
+Properties captured for workspaces include:
+- Workspace ID
+- Name
+- Members and their roles
+- Initial setup status
+- Creation and update timestamps
+
+### Organizations
+
+Properties captured for organizations include:
+- Organization ID
+- Name
+- Members and their roles
+- Associated workspaces
+- Creation and update timestamps
+
+## Installation
+
+### Prerequisites
+
 
 To use this connector, you will need:
 - An Airbyte instance
@@ -95,3 +163,24 @@ Flags:
 
 Use "baton-airbyte [command] --help" for more information about a command.
 ```
+
+
+## Implementation Details
+
+The connector follows a ResourceSyncer pattern to sync different resource types:
+
+1. It establishes a connection to the Airbyte API using OAuth 2.0 credentials
+2. For each resource type (users, workspaces, organizations), it:
+   - Fetches the resource listings
+   - Maps the resources to Baton's data model
+   - Creates appropriate entitlement relationships
+3. The connector uses pagination to retrieve all resources efficiently
+4. Token management is handled automatically, including refresh logic when tokens expire
+
+### Debug Logging
+
+Enable verbose logging with the `--log-level debug` flag to see detailed information about the sync process:
+
+## License
+
+[Apache-2.0](https://github.com/conductorone/baton-airbyte/blob/main/LICENSE)
