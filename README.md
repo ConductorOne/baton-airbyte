@@ -1,10 +1,4 @@
 # Baton Airbyte Connector
-
-[![Go Reference](https://pkg.go.dev/badge/github.com/conductorone/baton-airbyte.svg)](https://pkg.go.dev/github.com/conductorone/baton-airbyte)
-[![Go Report Card](https://goreportcard.com/badge/github.com/conductorone/baton-airbyte)](https://goreportcard.com/report/github.com/conductorone/baton-airbyte)
-[![Maintainability](https://api.codeclimate.com/v1/badges/5a2ca69ed15da96b9e8d/maintainability)](https://codeclimate.com/github/conductorone/baton-airbyte/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/5a2ca69ed15da96b9e8d/test_coverage)](https://codeclimate.com/github/conductorone/baton-airbyte/test_coverage)
-
 ## Overview
 
 Baton-airbyte is a connector for [Airbyte](https://airbyte.com/) built using the [Baton SDK](https://github.com/conductorone/baton-sdk). Baton is an open-source tool for identity security and access control. This connector syncs identity and resource data from Airbyte into Baton, enabling you to manage access to your Airbyte resources.
@@ -73,7 +67,7 @@ Properties captured for organizations include:
 
 ### Prerequisites
 
-- Go 1.19 or higher (for building from source)
+- Go 1.23 or higher (for building from source)
 - Docker (for running containerized)
 
 ### Using Homebrew
