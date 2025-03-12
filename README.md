@@ -1,4 +1,14 @@
+
+![Baton Logo](./baton-logo.png)
+
+# `baton-airbyte` [![Go Reference](https://pkg.go.dev/badge/github.com/conductorone/baton-airbyte.svg)](https://pkg.go.dev/github.com/conductorone/baton-airbyte) ![main ci](https://github.com/conductorone/baton-airbyte/actions/workflows/main.yaml/badge.svg)
+
+`baton-airbyte` is a connector for Airbyte built using the [Baton SDK](https://github.com/conductorone/baton-sdk). It allows you to sync user information from your Airbyte instance into ConductorOne.
+
+Check out [Baton](https://github.com/conductorone/baton) to learn more about the project in general.
+
 # Baton Airbyte Connector
+
 ## Overview
 
 Baton-airbyte is a connector for [Airbyte](https://airbyte.com/) built using the [Baton SDK](https://github.com/conductorone/baton-sdk). Baton is an open-source tool for identity security and access control. This connector syncs identity and resource data from Airbyte into Baton, enabling you to manage access to your Airbyte resources.
@@ -67,114 +77,6 @@ Properties captured for organizations include:
 
 ### Prerequisites
 
-- Go 1.23 or higher (for building from source)
-- Docker (for running containerized)
-
-### Using Homebrew
-
-```bash
-brew install conductorone/baton/baton-airbyte
-```
-
-### Using Docker
-
-```bash
-docker pull conductorone/baton-airbyte:latest
-docker run --rm -v $(pwd):/out \
-  -e BATON_AIRBYTE_CLIENT_ID=your-client-id \
-  -e BATON_AIRBYTE_CLIENT_SECRET=your-client-secret \
-  -e BATON_DOMAIN_URL=https://your-airbyte-domain.com \
-  conductorone/baton-airbyte:latest -f /out/c1z-airbyte.c1z
-```
-
-### Building from Source
-
-```bash
-git clone https://github.com/conductorone/baton-airbyte.git
-cd baton-airbyte
-go build -o baton-airbyte cmd/baton-airbyte/main.go
-```
-
-## Usage Examples
-
-### Basic Sync
-
-```bash
-export BATON_AIRBYTE_CLIENT_ID=your-client-id
-export BATON_AIRBYTE_CLIENT_SECRET=your-client-secret
-export BATON_DOMAIN_URL=https://your-airbyte-domain.com
-
-./baton-airbyte -f airbyte-sync.c1z
-```
-
-### Sync with Verbose Logging
-
-```bash
-./baton-airbyte -f airbyte-sync.c1z -v
-```
-
-## Implementation Details
-
-The connector follows a ResourceSyncer pattern to sync different resource types:
-
-1. It establishes a connection to the Airbyte API using OAuth 2.0 credentials
-2. For each resource type (users, workspaces, organizations), it:
-   - Fetches the resource listings
-   - Maps the resources to Baton's data model
-   - Creates appropriate entitlement relationships
-3. The connector uses pagination to retrieve all resources efficiently
-4. Token management is handled automatically, including refresh logic when tokens expire
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Authentication Errors**
-   - Verify your client ID and secret are correct
-   - Check that your Airbyte instance URL is accessible
-   - Ensure your OAuth client has appropriate permissions
-
-2. **Resource Sync Issues**
-   - Check if your client has sufficient permissions to read all resources
-   - For large instances, try increasing timeouts or optimizing page sizes
-
-3. **Rate Limiting**
-   - The connector implements backoff strategies, but you may need to adjust sync timing for very large instances
-
-### Debug Logging
-
-Enable verbose logging with the `-v` flag to see detailed information about the sync process:
-
-```bash
-./baton-airbyte -f output.c1z -v
-```
-
-## Limitations
-
-- The connector currently only supports syncing (read operations) and does not support provisioning (write operations)
-- Resource syncing is limited to users, workspaces, and organizations
-- Custom roles or permission structures may not be fully represented
-
-## Support & Contributing
-
-- For issues and feature requests, open an issue on the [GitHub repository](https://github.com/conductorone/baton-airbyte)
-- Contributions are welcome - see the [Baton SDK](https://github.com/conductorone/baton-sdk) for development guidelines
-
-## License
-
-[Apache-2.0](https://github.com/conductorone/baton-airbyte/blob/main/LICENSE)
-
-![Baton Logo](./baton-logo.png)
-
-# `baton-airbyte` [![Go Reference](https://pkg.go.dev/badge/github.com/conductorone/baton-airbyte.svg)](https://pkg.go.dev/github.com/conductorone/baton-airbyte) ![main ci](https://github.com/conductorone/baton-airbyte/actions/workflows/main.yaml/badge.svg)
-
-`baton-airbyte` is a connector for Airbyte built using the [Baton SDK](https://github.com/conductorone/baton-sdk). It allows you to sync user information from your Airbyte instance into ConductorOne.
-
-Check out [Baton](https://github.com/conductorone/baton) to learn more about the project in general.
-
-# Getting Started
-
-## Prerequisites
 
 To use this connector, you will need:
 - An Airbyte instance
@@ -261,3 +163,24 @@ Flags:
 
 Use "baton-airbyte [command] --help" for more information about a command.
 ```
+
+
+## Implementation Details
+
+The connector follows a ResourceSyncer pattern to sync different resource types:
+
+1. It establishes a connection to the Airbyte API using OAuth 2.0 credentials
+2. For each resource type (users, workspaces, organizations), it:
+   - Fetches the resource listings
+   - Maps the resources to Baton's data model
+   - Creates appropriate entitlement relationships
+3. The connector uses pagination to retrieve all resources efficiently
+4. Token management is handled automatically, including refresh logic when tokens expire
+
+### Debug Logging
+
+Enable verbose logging with the `--log-level debug` flag to see detailed information about the sync process:
+
+## License
+
+[Apache-2.0](https://github.com/conductorone/baton-airbyte/blob/main/LICENSE)
