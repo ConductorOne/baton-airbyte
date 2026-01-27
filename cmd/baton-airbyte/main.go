@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/conductorone/baton-airbyte/pkg/connector"
+	cfg "github.com/conductorone/baton-airbyte/pkg/config"
 	"github.com/conductorone/baton-sdk/pkg/config"
 	"github.com/conductorone/baton-sdk/pkg/connectorbuilder"
 	"github.com/conductorone/baton-sdk/pkg/connectorrunner"
@@ -24,7 +25,7 @@ func main() {
 		ctx,
 		"baton-airbyte",
 		getConnector,
-		cfg,
+		cfg.Config,
 		connectorrunner.WithDefaultCapabilitiesConnectorBuilder(&connector.Airbyte{}),
 	)
 	if err != nil {
@@ -48,9 +49,9 @@ func getConnector(ctx context.Context, v *viper.Viper) (types.ConnectorServer, e
 		return nil, err
 	}
 
-	hostname := v.GetString("hostname")
-	clientId := v.GetString("airbyte-client-id")
-	clientSecret := v.GetString("airbyte-client-secret")
+	hostname := v.GetString(cfg.HostnameField.FieldName)
+	clientId := v.GetString(cfg.ClientIdField.FieldName)
+	clientSecret := v.GetString(cfg.ClientSecretField.FieldName)
 
 	cb, err := connector.New(ctx, hostname, clientId, clientSecret)
 	if err != nil {
