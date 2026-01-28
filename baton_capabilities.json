@@ -3,6 +3,16 @@
   "resourceTypeCapabilities":  [
     {
       "resourceType":  {
+        "id":  "organization",
+        "displayName":  "Organization"
+      },
+      "capabilities":  [
+        "CAPABILITY_SYNC"
+      ],
+      "permissions":  {}
+    },
+    {
+      "resourceType":  {
         "id":  "user",
         "displayName":  "User",
         "traits":  [
@@ -11,7 +21,18 @@
       },
       "capabilities":  [
         "CAPABILITY_SYNC"
-      ]
+      ],
+      "permissions":  {}
+    },
+    {
+      "resourceType":  {
+        "id":  "workspace",
+        "displayName":  "Workspace"
+      },
+      "capabilities":  [
+        "CAPABILITY_SYNC"
+      ],
+      "permissions":  {}
     }
   ],
   "connectorCapabilities":  [
