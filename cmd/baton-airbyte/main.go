@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"os"
 
+	cfg "github.com/conductorone/baton-airbyte/pkg/config"
 	"github.com/conductorone/baton-airbyte/pkg/connector"
 	"github.com/conductorone/baton-sdk/pkg/config"
 	"github.com/conductorone/baton-sdk/pkg/connectorbuilder"
 	"github.com/conductorone/baton-sdk/pkg/types"
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
@@ -23,7 +23,7 @@ func main() {
 		ctx,
 		"baton-airbyte",
 		getConnector,
-		cfg,
+		cfg.Config,
 	)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
@@ -39,18 +39,14 @@ func main() {
 	}
 }
 
-func getConnector(ctx context.Context, v *viper.Viper) (types.ConnectorServer, error) {
+func getConnector(ctx context.Context, ac *cfg.Airbyte) (types.ConnectorServer, error) {
 	l := ctxzap.Extract(ctx)
 
-	if err := ValidateConfig(v); err != nil {
+	if err := cfg.ValidateConfig(ac); err != nil {
 		return nil, err
 	}
 
-	hostname := v.GetString("hostname")
-	clientId := v.GetString("airbyte-client-id")
-	clientSecret := v.GetString("airbyte-client-secret")
-
-	cb, err := connector.New(ctx, hostname, clientId, clientSecret)
+	cb, err := connector.New(ctx, ac.Hostname, ac.AirbyteClientId, ac.AirbyteClientSecret)
 	if err != nil {
 		l.Error("error creating connector", zap.Error(err))
 		return nil, err
@@ -62,11 +58,11 @@ func getConnector(ctx context.Context, v *viper.Viper) (types.ConnectorServer, e
 		return nil, err
 	}
 
-	connector, err := connectorbuilder.NewConnector(ctx, cb)
+	c, err := connectorbuilder.NewConnector(ctx, cb)
 	if err != nil {
 		l.Error("error creating connector", zap.Error(err))
 		return nil, err
 	}
 
-	return connector, nil
+	return c, nil
 }
