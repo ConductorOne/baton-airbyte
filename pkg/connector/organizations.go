@@ -160,9 +160,9 @@ func (o *orgBuilder) getOrganizationPermissionType(ctx context.Context, userID, 
 
 	allPermissions = append(allPermissions, permissions...)
 
-	// Find permission for this organization
+	// Find permission for this organization and user
 	for _, permission := range allPermissions {
-		if permission.Scope == "organization" && permission.ScopeID == organizationID {
+		if permission.Scope == "organization" && permission.ScopeID == organizationID && permission.UserID == userID {
 			return strings.ToLower(permission.PermissionType), nil
 		}
 	}

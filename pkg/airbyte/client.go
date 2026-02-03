@@ -192,13 +192,13 @@ func (c *Client) ListUsersByOrganization(ctx context.Context, orgId string) ([]*
 func (c *Client) ListPermissionsByUserAndOrganization(ctx context.Context, userId string, orgId string) ([]*Permission, error) {
 	resp := &APIResponse[[]*Permission]{}
 
-	pathParams := map[string]string{
-		"userId": userId,
-		"orgId":  orgId,
+	queryParams := map[string]string{
+		"userId":         userId,
+		"organizationId": orgId,
 	}
 
 	// This endpoint doesn't support pagination.
-	err := c.doRequest(ctx, http.MethodGet, c.buildResourceURL(listPermissionsPath, pathParams, nil), resp, nil, false)
+	err := c.doRequest(ctx, http.MethodGet, c.buildResourceURL(listPermissionsPath, nil, queryParams), resp, nil, false)
 	if err != nil {
 		return nil, err
 	}
