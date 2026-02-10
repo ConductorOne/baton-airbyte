@@ -1,7 +1,7 @@
 
 ![Baton Logo](./baton-logo.png)
 
-# `baton-airbyte` [![Go Reference](https://pkg.go.dev/badge/github.com/conductorone/baton-airbyte.svg)](https://pkg.go.dev/github.com/conductorone/baton-airbyte) ![main ci](https://github.com/conductorone/baton-airbyte/actions/workflows/main.yaml/badge.svg)
+# `baton-airbyte` [![Go Reference](https://pkg.go.dev/badge/github.com/conductorone/baton-airbyte.svg)](https://pkg.go.dev/github.com/conductorone/baton-airbyte) ![verify](https://github.com/conductorone/baton-airbyte/actions/workflows/verify.yaml/badge.svg)
 
 `baton-airbyte` is a connector for Airbyte built using the [Baton SDK](https://github.com/conductorone/baton-sdk). It allows you to sync user information from your Airbyte instance into ConductorOne.
 
@@ -76,7 +76,6 @@ Properties captured for organizations include:
 ## Installation
 
 ### Prerequisites
-
 
 To use this connector, you will need:
 - An Airbyte instance
@@ -163,7 +162,6 @@ Flags:
 
 Use "baton-airbyte [command] --help" for more information about a command.
 ```
-
 
 ## Implementation Details
 
