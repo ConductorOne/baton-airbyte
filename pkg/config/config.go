@@ -22,6 +22,7 @@ var Config = field.NewConfiguration(
 			"airbyte-client-secret",
 			field.WithRequired(true),
 			field.WithDescription("The Airbyte client secret used to connect to the Airbyte API."),
+			field.WithIsSecret(true),
 		),
 	},
 	field.WithConstraints(
