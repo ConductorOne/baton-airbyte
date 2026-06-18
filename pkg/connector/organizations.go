@@ -8,8 +8,6 @@ import (
 
 	"github.com/conductorone/baton-airbyte/pkg/airbyte"
 	v2 "github.com/conductorone/baton-sdk/pb/c1/connector/v2"
-	"github.com/conductorone/baton-sdk/pkg/annotations"
-	"github.com/conductorone/baton-sdk/pkg/pagination"
 	ent "github.com/conductorone/baton-sdk/pkg/types/entitlement"
 	grant "github.com/conductorone/baton-sdk/pkg/types/grant"
 	rs "github.com/conductorone/baton-sdk/pkg/types/resource"
@@ -59,10 +57,10 @@ func orgResource(org airbyte.Organization) (*v2.Resource, error) {
 }
 
 // List returns all the organizations.
-func (o *orgBuilder) List(ctx context.Context, _ *v2.ResourceId, _ *pagination.Token) ([]*v2.Resource, string, annotations.Annotations, error) {
+func (o *orgBuilder) List(ctx context.Context, _ *v2.ResourceId, _ rs.SyncOpAttrs) ([]*v2.Resource, *rs.SyncOpResults, error) {
 	orgs, err := o.client.ListOrganizations(ctx)
 	if err != nil {
-		return nil, "", nil, fmt.Errorf("airbyte-connector: failed to list organizations: %w", err)
+		return nil, nil, fmt.Errorf("airbyte-connector: failed to list organizations: %w", err)
 	}
 
 	// Iterate over organizations and filter valid ones
@@ -75,17 +73,17 @@ func (o *orgBuilder) List(ctx context.Context, _ *v2.ResourceId, _ *pagination.T
 		// Convert organization to a v2.Resource
 		resource, err := orgResource(org)
 		if err != nil {
-			return nil, "", nil, fmt.Errorf("failed to create resource for organization %s: %w", org.Name, err)
+			return nil, nil, fmt.Errorf("failed to create resource for organization %s: %w", org.Name, err)
 		}
 
 		resources = append(resources, resource)
 	}
 
-	return resources, "", nil, nil
+	return resources, nil, nil
 }
 
 // Entitlements returns a slice of entitlements for possible user roles under organization.
-func (o *orgBuilder) Entitlements(_ context.Context, resource *v2.Resource, _ *pagination.Token) ([]*v2.Entitlement, string, annotations.Annotations, error) {
+func (o *orgBuilder) Entitlements(_ context.Context, resource *v2.Resource, _ rs.SyncOpAttrs) ([]*v2.Entitlement, *rs.SyncOpResults, error) {
 	// Preallocate slice for efficiency
 	entitlements := make([]*v2.Entitlement, 0, len(PublicOrganizationPermissionsTypes))
 
@@ -105,14 +103,14 @@ func (o *orgBuilder) Entitlements(_ context.Context, resource *v2.Resource, _ *p
 		entitlements = append(entitlements, ent.NewPermissionEntitlement(resource, permissionType, entitlementOptions...))
 	}
 
-	return entitlements, "", nil, nil
+	return entitlements, nil, nil
 }
 
 // Grants returns a slice of grants for each user and their set role under organization.
-func (o *orgBuilder) Grants(ctx context.Context, resource *v2.Resource, _ *pagination.Token) ([]*v2.Grant, string, annotations.Annotations, error) {
+func (o *orgBuilder) Grants(ctx context.Context, resource *v2.Resource, _ rs.SyncOpAttrs) ([]*v2.Grant, *rs.SyncOpResults, error) {
 	users, err := o.client.ListUsersByOrganization(ctx, resource.Id.Resource)
 	if err != nil {
-		return nil, "", nil, fmt.Errorf("airbyte-connector: failed to list users under organization %s: %w", resource.Id.Resource, err)
+		return nil, nil, fmt.Errorf("airbyte-connector: failed to list users under organization %s: %w", resource.Id.Resource, err)
 	}
 
 	var rv []*v2.Grant
@@ -120,7 +118,7 @@ func (o *orgBuilder) Grants(ctx context.Context, resource *v2.Resource, _ *pagin
 		// Get the permission type for the user under the organization
 		permissionType, err := o.getOrganizationPermissionType(ctx, user.ID, resource.Id.Resource)
 		if err != nil {
-			return nil, "", nil, fmt.Errorf("airbyte-connector: failed to get permission type for user %s under organization %s: %w", user.ID, resource.Id.Resource, err)
+			return nil, nil, fmt.Errorf("airbyte-connector: failed to get permission type for user %s under organization %s: %w", user.ID, resource.Id.Resource, err)
 		}
 
 		// check for valid roles and skip if not
@@ -130,13 +128,13 @@ func (o *orgBuilder) Grants(ctx context.Context, resource *v2.Resource, _ *pagin
 
 		userResource, err := userResource(user)
 		if err != nil {
-			return nil, "", nil, err
+			return nil, nil, err
 		}
 
 		rv = append(rv, grant.NewGrant(resource, permissionType, userResource.Id))
 	}
 
-	return rv, "", nil, nil
+	return rv, nil, nil
 }
 
 func newOrgBuilder(client *airbyte.Client) *orgBuilder {

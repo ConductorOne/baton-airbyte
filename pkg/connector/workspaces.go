@@ -8,8 +8,6 @@ import (
 
 	"github.com/conductorone/baton-airbyte/pkg/airbyte"
 	v2 "github.com/conductorone/baton-sdk/pb/c1/connector/v2"
-	"github.com/conductorone/baton-sdk/pkg/annotations"
-	"github.com/conductorone/baton-sdk/pkg/pagination"
 	ent "github.com/conductorone/baton-sdk/pkg/types/entitlement"
 	grant "github.com/conductorone/baton-sdk/pkg/types/grant"
 	rs "github.com/conductorone/baton-sdk/pkg/types/resource"
@@ -74,7 +72,8 @@ func workspaceResource(workspace airbyte.Workspace, parentResourceID *v2.Resourc
 //
 // Workspaces belonging to organizations we can't access will be marked with an
 // "unknown-parent" organization ID.
-func (o *workspaceBuilder) List(ctx context.Context, _ *v2.ResourceId, pToken *pagination.Token) ([]*v2.Resource, string, annotations.Annotations, error) {
+func (o *workspaceBuilder) List(ctx context.Context, _ *v2.ResourceId, opts rs.SyncOpAttrs) ([]*v2.Resource, *rs.SyncOpResults, error) {
+	pToken := &opts.PageToken
 	// Initialize the map if we're starting a new list
 	if pToken.Token == "" {
 		// Initialize the map
@@ -83,7 +82,7 @@ func (o *workspaceBuilder) List(ctx context.Context, _ *v2.ResourceId, pToken *p
 		// Get workspaces with organizations
 		allWorkspacesWithParentOrganizationID, err := o.getAllWorkspacesWithParentOrganizationID(ctx)
 		if err != nil {
-			return nil, "", nil, fmt.Errorf("airbyte-connector: getAllWorkspacesWithParentOrganizationID > failed to list workspaces: %w", err)
+			return nil, nil, fmt.Errorf("airbyte-connector: getAllWorkspacesWithParentOrganizationID > failed to list workspaces: %w", err)
 		}
 
 		// Populate the map with workspace-to-organization relationships
@@ -99,17 +98,17 @@ func (o *workspaceBuilder) List(ctx context.Context, _ *v2.ResourceId, pToken *p
 	// pToken.Token is the offset for the current page
 	bag, offsetForCurrentPage, err := parsePageToken(pToken, &v2.ResourceId{ResourceType: workspaceResourceType.Id})
 	if err != nil {
-		return nil, "", nil, err
+		return nil, nil, err
 	}
 
 	listWorkspaceResponse, offsetForNextPage, err := o.client.ListAllWorkspaces(ctx, ResourcesPageSize, offsetForCurrentPage)
 	if err != nil {
-		return nil, "", nil, fmt.Errorf("airbyte-connector: ListAllWorkspaces > failed to list workspaces: %w", err)
+		return nil, nil, fmt.Errorf("airbyte-connector: ListAllWorkspaces > failed to list workspaces: %w", err)
 	}
 
 	next, err := bag.NextToken(offsetForNextPage)
 	if err != nil {
-		return nil, "", nil, err
+		return nil, nil, err
 	}
 
 	// Process all workspaces
@@ -139,17 +138,17 @@ func (o *workspaceBuilder) List(ctx context.Context, _ *v2.ResourceId, pToken *p
 
 		resource, err := workspaceResource(workspace, parentResourceID)
 		if err != nil {
-			return nil, "", nil, fmt.Errorf("failed to create resource for workspace %s: %w", workspace.Name, err)
+			return nil, nil, fmt.Errorf("failed to create resource for workspace %s: %w", workspace.Name, err)
 		}
 
 		resources = append(resources, resource)
 	}
 
-	return resources, next, nil, nil
+	return resources, &rs.SyncOpResults{NextPageToken: next}, nil
 }
 
 // Entitlements returns a slice of entitlements for possible user roles under workspace (Viewer, Editor, Admin).
-func (o *workspaceBuilder) Entitlements(_ context.Context, resource *v2.Resource, _ *pagination.Token) ([]*v2.Entitlement, string, annotations.Annotations, error) {
+func (o *workspaceBuilder) Entitlements(_ context.Context, resource *v2.Resource, _ rs.SyncOpAttrs) ([]*v2.Entitlement, *rs.SyncOpResults, error) {
 	// Preallocate slice for efficiency
 	entitlements := make([]*v2.Entitlement, 0, len(PublicWorkspacePermissionsTypes))
 
@@ -169,14 +168,14 @@ func (o *workspaceBuilder) Entitlements(_ context.Context, resource *v2.Resource
 		entitlements = append(entitlements, ent.NewPermissionEntitlement(resource, permissionType, entitlementOptions...))
 	}
 
-	return entitlements, "", nil, nil
+	return entitlements, nil, nil
 }
 
 // Grants returns a slice of grants for each user and their set role under workspace.
-func (o *workspaceBuilder) Grants(ctx context.Context, resource *v2.Resource, _ *pagination.Token) ([]*v2.Grant, string, annotations.Annotations, error) {
+func (o *workspaceBuilder) Grants(ctx context.Context, resource *v2.Resource, _ rs.SyncOpAttrs) ([]*v2.Grant, *rs.SyncOpResults, error) {
 	listUserswithaccessInfoResponse, err := o.client.ListUsersWithAccessInfoByWorkspace(ctx, resource.Id.Resource)
 	if err != nil {
-		return nil, "", nil, fmt.Errorf("airbyte-connector: failed to list users under workspace %s: %w", resource.Id.Resource, err)
+		return nil, nil, fmt.Errorf("airbyte-connector: failed to list users under workspace %s: %w", resource.Id.Resource, err)
 	}
 
 	// Map organization permissions to workspace permissions.
@@ -219,13 +218,13 @@ func (o *workspaceBuilder) Grants(ctx context.Context, resource *v2.Resource, _ 
 
 		userResource, err := userResource(&user)
 		if err != nil {
-			return nil, "", nil, err
+			return nil, nil, err
 		}
 
 		rv = append(rv, grant.NewGrant(resource, permissionType, userResource.Id))
 	}
 
-	return rv, "", nil, nil
+	return rv, nil, nil
 }
 
 func newWorkspaceBuilder(client *airbyte.Client) *workspaceBuilder {

@@ -6,8 +6,6 @@ import (
 
 	"github.com/conductorone/baton-airbyte/pkg/airbyte"
 	v2 "github.com/conductorone/baton-sdk/pb/c1/connector/v2"
-	"github.com/conductorone/baton-sdk/pkg/annotations"
-	"github.com/conductorone/baton-sdk/pkg/pagination"
 	rs "github.com/conductorone/baton-sdk/pkg/types/resource"
 )
 
@@ -48,16 +46,16 @@ func userResource(user *airbyte.User) (*v2.Resource, error) {
 }
 
 // List returns all the users as resource objects.
-func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId, _ *pagination.Token) ([]*v2.Resource, string, annotations.Annotations, error) {
+func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId, _ rs.SyncOpAttrs) ([]*v2.Resource, *rs.SyncOpResults, error) {
 	if parentResourceID == nil {
-		return nil, "", nil, nil
+		return nil, nil, nil
 	}
 
 	// The only way found to list all users was the list users endpoint with access information per workspace, since the list users endpoint does not work as we might expect..
 	// If we use the endpoint to list users by organization, we would lose the users who only have access to a single workspace.
 	ListUserResponse, err := o.client.ListUsersWithAccessInfoByWorkspace(ctx, parentResourceID.Resource)
 	if err != nil {
-		return nil, "", nil, fmt.Errorf("airbyte-connector: failed to list users: %w", err)
+		return nil, nil, fmt.Errorf("airbyte-connector: failed to list users: %w", err)
 	}
 
 	resources := make([]*v2.Resource, 0, len(ListUserResponse))
@@ -71,22 +69,22 @@ func (o *userBuilder) List(ctx context.Context, parentResourceID *v2.ResourceId,
 		ur, err := userResource(&user)
 
 		if err != nil {
-			return nil, "", nil, fmt.Errorf("failed to create resource for user %s: %w", user.Email, err)
+			return nil, nil, fmt.Errorf("failed to create resource for user %s: %w", user.Email, err)
 		}
 		resources = append(resources, ur)
 	}
 
-	return resources, "", nil, nil
+	return resources, nil, nil
 }
 
 // Entitlements always returns an empty slice for users.
-func (o *userBuilder) Entitlements(ctx context.Context, resource *v2.Resource, _ *pagination.Token) ([]*v2.Entitlement, string, annotations.Annotations, error) {
-	return nil, "", nil, nil
+func (o *userBuilder) Entitlements(_ context.Context, _ *v2.Resource, _ rs.SyncOpAttrs) ([]*v2.Entitlement, *rs.SyncOpResults, error) {
+	return nil, nil, nil
 }
 
 // Grants always returns an empty slice for users since they don't have any entitlements.
-func (o *userBuilder) Grants(ctx context.Context, resource *v2.Resource, pToken *pagination.Token) ([]*v2.Grant, string, annotations.Annotations, error) {
-	return nil, "", nil, nil
+func (o *userBuilder) Grants(_ context.Context, _ *v2.Resource, _ rs.SyncOpAttrs) ([]*v2.Grant, *rs.SyncOpResults, error) {
+	return nil, nil, nil
 }
 
 func newUserBuilder(client *airbyte.Client) *userBuilder {
