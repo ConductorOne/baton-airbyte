@@ -94,7 +94,9 @@
     },
     {
       "name": "hostname",
+      "displayName": "Airbyte hostname",
       "description": "The Airbyte hostname used to connect to the Airbyte API",
+      "placeholder": "Your Airbyte hostname",
       "isRequired": true,
       "stringField": {
         "rules": {
@@ -104,8 +106,11 @@
     },
     {
       "name": "airbyte-client-id",
-      "description": "The Airbyte client id used to connect to the Airbyte API.",
+      "displayName": "Airbyte client ID",
+      "description": "The Airbyte client ID used to connect to the Airbyte API.",
+      "placeholder": "Your Airbyte client ID",
       "isRequired": true,
+      "isSecret": true,
       "stringField": {
         "rules": {
           "isRequired": true
@@ -114,7 +119,9 @@
     },
     {
       "name": "airbyte-client-secret",
+      "displayName": "Airbyte client secret",
       "description": "The Airbyte client secret used to connect to the Airbyte API.",
+      "placeholder": "Your Airbyte client secret",
       "isRequired": true,
       "isSecret": true,
       "stringField": {
@@ -124,13 +131,7 @@
       }
     }
   ],
-  "constraints": [
-    {
-      "kind": "CONSTRAINT_KIND_REQUIRED_TOGETHER",
-      "fieldNames": [
-        "airbyte-client-id",
-        "airbyte-client-secret"
-      ]
-    }
-  ]
+  "displayName": "Airbyte",
+  "helpUrl": "/docs/baton/airbyte",
+  "iconUrl": "/static/app-icons/airbyte.svg"
 }
