@@ -5,8 +5,10 @@ import (
 	"io"
 
 	"github.com/conductorone/baton-airbyte/pkg/airbyte"
+	cfg "github.com/conductorone/baton-airbyte/pkg/config"
 	v2 "github.com/conductorone/baton-sdk/pb/c1/connector/v2"
 	"github.com/conductorone/baton-sdk/pkg/annotations"
+	"github.com/conductorone/baton-sdk/pkg/cli"
 	"github.com/conductorone/baton-sdk/pkg/connectorbuilder"
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"go.uber.org/zap"
@@ -18,8 +20,8 @@ type Airbyte struct {
 }
 
 // ResourceSyncers returns a list of syncers for different resource types.
-func (a *Airbyte) ResourceSyncers(ctx context.Context) []connectorbuilder.ResourceSyncer {
-	return []connectorbuilder.ResourceSyncer{
+func (a *Airbyte) ResourceSyncers(ctx context.Context) []connectorbuilder.ResourceSyncerV2 {
+	return []connectorbuilder.ResourceSyncerV2{
 		newOrgBuilder(a.client),
 		newUserBuilder(a.client),
 		newWorkspaceBuilder(a.client),
@@ -66,4 +68,13 @@ func New(ctx context.Context, hostname string, clientId string, clientSecret str
 	return &Airbyte{
 		client: airbyteClient,
 	}, nil
+}
+
+// NewLambdaConnector satisfies cli.NewConnector for use with config.RunConnector.
+func NewLambdaConnector(ctx context.Context, ac *cfg.Airbyte, _ *cli.ConnectorOpts) (connectorbuilder.ConnectorBuilderV2, []connectorbuilder.Opt, error) {
+	cb, err := New(ctx, ac.Hostname, ac.AirbyteClientId, ac.AirbyteClientSecret)
+	if err != nil {
+		return nil, nil, err
+	}
+	return cb, nil, nil
 }
